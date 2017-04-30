@@ -3,7 +3,7 @@ function MicrophoneCapture() {
   this.RecordingEnum = {"RECORDING": 0, "NOT_RECORDING": 1};
   Object.freeze(this.RecordingEnum);
 
-  this.recordingBufferArray = [];
+  this.recordingBuffer = null;
   this.currentRecordingBuffer = [];
   this.recordingState = this.RecordingEnum.NOT_RECORDING;
 
@@ -67,18 +67,14 @@ MicrophoneCapture.prototype.startRecording = function() {
 
 MicrophoneCapture.prototype.stopRecording = function() {
   if (this.recordingState ===  this.RecordingEnum.RECORDING) {
-    this.recordingBufferArray.push(this.currentRecordingBuffer.slice(0));
+    this.recordingBuffer = this.currentRecordingBuffer.slice(0);
   }
 
   this.recordingState = this.RecordingEnum.NOT_RECORDING;
-
-   console.log(this.recordingBufferArray);
-  return this.recordingBufferArray.length;
 }
 
 MicrophoneCapture.prototype.playRecording = function() {
-  var buffer = this.recordingBufferArray[this.recordingBufferArray.length - 1];
-  this.playBufferRecording(buffer);
+  this.playBufferRecording(this.recordingBuffer);
 }
 
 MicrophoneCapture.prototype.playBufferRecording = function(playBuffer) {
