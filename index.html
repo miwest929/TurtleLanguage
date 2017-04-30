@@ -1,0 +1,39 @@
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+  <title>capture microphone audio into buffer</title>
+</head>
+<body>
+  <script
+    src="https://code.jquery.com/jquery-3.2.1.min.js"
+    integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+    crossorigin="anonymous"></script>
+  <script type="text/javascript" src="microphone_capture.js"></script>
+  <script type="text/javascript">
+    var microphone = new MicrophoneCapture();
+    microphone.openMic();
+
+    $(document).ready(function() {
+      $("#record").click(function() {
+        var recordBtn = $("#record");
+        var text = recordBtn.val();
+        if (text === "Record") {
+          recordBtn.val("Stop");
+          microphone.startRecording();
+        } else {
+          recordBtn.val("Record");
+          microphone.stopRecording();
+        }
+      });
+
+      $("#play").click(function() {
+        microphone.playRecording();
+      });
+    });
+  </script>
+    <input id="record" type="button" value="Record"/>
+    <input id="play" type="button" value="Play"/>
+    <input id="recognize" type="button" value="Recognize"/>
+</body>
+</html>
+
