@@ -38,6 +38,10 @@ function MicrophoneCapture() {
 
 }
 
+MicrophoneCapture.prototype.getLastRecording = function() {
+  return this.recordingBuffer;
+}
+
 MicrophoneCapture.prototype.openMic = function() {
   var _this = this;
   var constraints = {"audio": true};

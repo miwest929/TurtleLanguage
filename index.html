@@ -8,10 +8,25 @@
     src="https://code.jquery.com/jquery-3.2.1.min.js"
     integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
     crossorigin="anonymous"></script>
+  <script type="text/javascript" src="recorder.js"></script>
   <script type="text/javascript" src="microphone_capture.js"></script>
   <script type="text/javascript">
-    var microphone = new MicrophoneCapture();
-    microphone.openMic();
+    //var microphone = new MicrophoneCapture();
+    //microphone.openMic();
+    var audioContext = new AudioContext;
+    var rec = null;
+
+    function startUserMedia(stream) {
+       var input = audioContext.createMediaStreamSource(stream);
+       console.log('Media stream created.');
+
+       recorder = new Recorder(input, {numChannels: 1});
+       console.log('Recorder initialised.');
+    }
+
+    navigator.getUserMedia({audio: true}, startUserMedia, function(e) {
+      console.log('No live audio input: ' + e);
+    });
 
     $(document).ready(function() {
       $("#record").click(function() {
@@ -19,25 +34,49 @@
         var text = recordBtn.val();
         if (text === "Record") {
           recordBtn.val("Stop");
-          microphone.startRecording();
+          //microphone.startRecording();
+           recorder && recorder.record();
         } else {
           recordBtn.val("Record");
-          microphone.stopRecording();
+          recorder && recorder.stop();
+          //microphone.stopRecording();
         }
       });
 
       $("#play").click(function() {
-        microphone.playRecording();
+        //microphone.playRecording();
       });
 
       $("#recognize").click(function() {
-/*        $.ajax({
+          recorder && recorder.exportWAV(function(blob) {
+          var oReq = new XMLHttpRequest();
+          oReq.open("POST", "http://localhost:3001/audio", true);
+          oReq.onload = function (oEvent) {
+            console.log(oEvent);
+            // Uploaded.
+          };
+          oReq.onerror = function (error) {
+            console.log(error);
+          }
+
+          console.log(blob);
+          oReq.send(blob);
+            /*$.ajax({
+              type: "POST",
+              contentType: 'application/octet-stream',
+              url: "localhost:3001/audio",
+              data: blob,
+              success: function(data) { console.log("success"); }
+            });*/
+          });
+/*        var recordingBuffer = microphone.getLastRecording();
+
+        $.ajax({
           type: "POST",
           url: "/audio",
           data: {
-           audio: 
-
-        $.post("*/
+           audio: recordingBuffer
+          }*/
       });
     });
   </script>
