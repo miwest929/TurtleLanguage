@@ -10,11 +10,10 @@
     crossorigin="anonymous"></script>
   <script type="text/javascript" src="recorder.js"></script>
   <script type="text/javascript" src="microphone_capture.js"></script>
+  <script type="text/javascript" src="turtlegraphics.js"></script>
   <script type="text/javascript">
-    //var microphone = new MicrophoneCapture();
-    //microphone.openMic();
     var audioContext = new AudioContext;
-    var rec = null;
+    var recorder = null;
 
     function startUserMedia(stream) {
        var input = audioContext.createMediaStreamSource(stream);
@@ -33,56 +32,47 @@
         var recordBtn = $("#record");
         var text = recordBtn.val();
         if (text === "Record") {
-          recordBtn.val("Stop");
-          //microphone.startRecording();
-           recorder && recorder.record();
+          recordBtn.val("Execute");
+
+          recorder && recorder.clear()
+          recorder && recorder.record();
         } else {
           recordBtn.val("Record");
           recorder && recorder.stop();
-          //microphone.stopRecording();
+          recognizeAndExecute();
         }
       });
 
-      $("#play").click(function() {
-        //microphone.playRecording();
-      });
-
-      $("#recognize").click(function() {
-          recorder && recorder.exportWAV(function(blob) {
+      var recognizeAndExecute = function() {
+        recorder && recorder.exportWAV(function(blob) {
           var oReq = new XMLHttpRequest();
-          oReq.open("POST", "http://localhost:3001/audio", true);
+          oReq.open("POST", "http://localhost:4567/audio", true);
           oReq.onload = function (oEvent) {
-            console.log(oEvent);
             // Uploaded.
+            console.log(oEvent);
           };
+
+          oReq.onreadystatechange = function() {
+            if (oReq.readyState == XMLHttpRequest.DONE) {
+              var response = JSON.parse(oReq.response)
+              var translation = response.results[0].alternatives[0];
+              $("#recognize-response").html(translation.transcript);
+              turtleInterpreter.execute(translation.transcript);
+            }
+          }
+
           oReq.onerror = function (error) {
             console.log(error);
           }
 
-          console.log(blob);
           oReq.send(blob);
-            /*$.ajax({
-              type: "POST",
-              contentType: 'application/octet-stream',
-              url: "localhost:3001/audio",
-              data: blob,
-              success: function(data) { console.log("success"); }
-            });*/
-          });
-/*        var recordingBuffer = microphone.getLastRecording();
-
-        $.ajax({
-          type: "POST",
-          url: "/audio",
-          data: {
-           audio: recordingBuffer
-          }*/
-      });
+        });
+      }
     });
   </script>
     <input id="record" type="button" value="Record"/>
-    <input id="play" type="button" value="Play"/>
-    <input id="recognize" type="button" value="Recognize"/>
+    <span id="recognize-response"></span>
+    <div><canvas id="turtle" width='800' height='600' border='1px'></canvas></div>
 </body>
 </html>
 
