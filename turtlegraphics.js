@@ -2,7 +2,7 @@ var TurtleCommand = function(step) {
   this.step = step;
   this.rotateDegrees = null;
   this.color = null;
-  this.isPenUp = true;
+  this.isPendown = null;
 }
 
 var TurtleCommandInterpreter = function() {
@@ -11,14 +11,20 @@ var TurtleCommandInterpreter = function() {
     forward: this.evalForward,
     color: this.evalColor,
     undo: this.evalUndo,
-    rotate: this.evalRotate
+    rotate: this.evalRotate,
+    pen: this.evalPen
+//    left: this.evalLeft,
+//    right: this.evalRight
   };
 
   this.fnArgCountMap = {
     forward: 1,
     color: 1,
     undo: 0,
-    rotate: 1
+    rotate: 1,
+    pen: 1
+//    left: 1,
+//    right: 1
   }
 }
 
@@ -32,6 +38,41 @@ TurtleCommandInterpreter.prototype.evalForward = function(amountArg) {
   }
 
   return new TurtleCommand(-pixels);
+}
+
+TurtleCommandInterpreter.prototype.evalPen = function(flagArg) {
+  var newCommand = new TurtleCommand(0);
+
+  if (flagArg == "up") {
+    newCommand.isPendown = false;
+  } else if (flagArg == "down") {
+    newCommand.isPendown = true;
+  } else {
+    console.log("Invalid argument '" + flagArg + "' to 'pen' command.");
+    return nil;
+  }
+
+  return newCommand;
+}
+
+TurtleCommandInterpreter.prototype.evalLeft = function(degreesArg) {
+  var degrees = parseInt(degreesArg, 10);
+  if (isNaN(degrees)) {
+    console.log("Argument to 'rotate' command is not an integer value.");
+    return;
+  }
+
+  //TODO: Implement relative angle update
+}
+
+TurtleCommandInterpreter.prototype.evalRight = function(degreesArg) {
+  var degrees = parseInt(degreesArg, 10);
+  if (isNaN(degrees)) {
+    console.log("Argument to 'rotate' command is not an integer value.");
+    return;
+  }
+
+  //TODO: Implement relative angle update
 }
 
 TurtleCommandInterpreter.prototype.evalRotate = function(degreesArg) {
@@ -129,7 +170,7 @@ $(document).ready(function() {
     // This is a rotation command
     if (command.rotateDegrees != null) {
       // do nothing for now
-    } else {
+    } else if ((command.isPendown != null && command.isPendown) || turtle.isPendown) {
       ctx.strokeStyle = turtle.color;
 
       ctx.beginPath();
@@ -171,6 +212,7 @@ $(document).ready(function() {
     this.yPosition = yPosition;
     this.rotationAngle = rotationAngle;
     this.color = "rgb(256, 256, 256)";
+    this.isPendown = true;
   }
 
   Turtle.prototype.update = function(command) {
@@ -185,6 +227,10 @@ $(document).ready(function() {
     if (command.rotateDegrees != null) {
       this.rotationAngle = command.rotateDegrees;
     }
+
+    if (command.isPendown != null) {
+      this.isPendown = command.isPendown;
+    }
   }
 
   Turtle.prototype.render = function(context, img) {
@@ -195,6 +241,7 @@ $(document).ready(function() {
     context.restore();
   };
 
+/*
   turtleInterpreter.execute("forward 50");
   turtleInterpreter.execute("rotate 90");
   turtleInterpreter.execute("forward 50");
@@ -207,6 +254,13 @@ $(document).ready(function() {
   turtleInterpreter.execute("forward 50");
   turtleInterpreter.execute("rotate 90");
   turtleInterpreter.execute("forward 50");
+*/
+  //turtleInterpreter.execute("penup");
+  //turtleInterpreter.execute("rotate 90");
+  //turtleInterpreter.execute("forward 100");
+  //turtleInterpreter.execute("pendown");
+  //turtleInterpreter.execute("rotate 180");
+  //turtleInterpreter.execute("forward 100");
 
   setInterval(function () {
     renderBackground();
