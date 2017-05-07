@@ -97,7 +97,13 @@ TurtleCommandInterpreter.prototype.evalColor = function(colorArg) {
     pink: "rgb(255,192,203)",
     orange: "rgb(255,140,0)",
     lime: "rgb(0,255,0)",
-    silver: "rgb(192,192,192)"
+    silver: "rgb(192,192,192)",
+    gold: "rgb(255,215,0)",
+    olive: "rgb(128,128,0)",
+    beige: "rgb(245,245,220)"
+    aqua: "rgb(0,255,255)",
+    teal: "rgb(0,128,128)",
+    brown: "rgb(139,69,19)"
   }
 
   var colorStyle = colorMap[colorArg];
