@@ -12,7 +12,9 @@ var TurtleCommandInterpreter = function() {
     color: this.evalColor,
     undo: this.evalUndo,
     rotate: this.evalRotate,
-    pen: this.evalPen
+    pen: this.evalPen,
+    down: this.evalPenDown,
+    up: this.evalPenUp
 //    left: this.evalLeft,
 //    right: this.evalRight
   };
@@ -22,7 +24,9 @@ var TurtleCommandInterpreter = function() {
     color: 1,
     undo: 0,
     rotate: 1,
-    pen: 1
+    pen: 1,
+    down: 0,
+    up: 0
 //    left: 1,
 //    right: 1
   }
@@ -38,6 +42,22 @@ TurtleCommandInterpreter.prototype.evalForward = function(amountArg) {
   }
 
   return new TurtleCommand(-pixels);
+}
+
+TurtleCommandInterpreter.prototype.evalPenDown = function() {
+  var newCommand = new TurtleCommand(0);
+
+  newCommand.isPendown = true;
+
+  return newCommand;
+}
+
+TurtleCommandInterpreter.prototype.evalPenUp = function() {
+  var newCommand = new TurtleCommand(0);
+
+  newCommand.isPendown = false;
+
+  return newCommand;
 }
 
 TurtleCommandInterpreter.prototype.evalPen = function(flagArg) {
@@ -100,7 +120,7 @@ TurtleCommandInterpreter.prototype.evalColor = function(colorArg) {
     silver: "rgb(192,192,192)",
     gold: "rgb(255,215,0)",
     olive: "rgb(128,128,0)",
-    beige: "rgb(245,245,220)"
+    beige: "rgb(245,245,220)",
     aqua: "rgb(0,255,255)",
     teal: "rgb(0,128,128)",
     brown: "rgb(139,69,19)"
@@ -211,7 +231,6 @@ $(document).ready(function() {
     return drawing;
   }
 
-  var turtleSprite = loadImage("imgs/turtle.png");
 
   var Turtle = function(xPosition, yPosition, rotationAngle) {
     this.xPosition = xPosition;
@@ -219,6 +238,8 @@ $(document).ready(function() {
     this.rotationAngle = rotationAngle;
     this.color = "rgb(256, 256, 256)";
     this.isPendown = true;
+    this.turtleSprite = loadImage("imgs/turtle.png");
+    this.turtlePenupSprite = loadImage("imgs/turtlepenup.png");
   }
 
   Turtle.prototype.update = function(command) {
@@ -239,11 +260,25 @@ $(document).ready(function() {
     }
   }
 
-  Turtle.prototype.render = function(context, img) {
+  Turtle.prototype.reset = function(xPosition, yPosition, rotationAngle) {
+    this.xPosition = xPosition;
+    this.yPosition = yPosition;
+    this.rotationAngle = rotationAngle;
+    this.color = "rgb(256, 256, 256)";
+    this.isPendown = true;
+  }
+
+  Turtle.prototype.render = function(context) {
     context.save();
     context.translate(this.xPosition, this.yPosition);
     context.rotate(this.rotationAngle * Math.PI/180)
-    context.drawImage(img, 0, 0);
+
+    if (this.isPendown) {
+      context.drawImage(this.turtleSprite, 0, 0);
+    } else {
+      context.drawImage(this.turtlePenupSprite, 0, 0);
+    }
+
     context.restore();
   };
 
@@ -261,21 +296,23 @@ $(document).ready(function() {
   turtleInterpreter.execute("rotate 90");
   turtleInterpreter.execute("forward 50");
 */
-  //turtleInterpreter.execute("penup");
+  //turtleInterpreter.execute("pen up");
   //turtleInterpreter.execute("rotate 90");
   //turtleInterpreter.execute("forward 100");
   //turtleInterpreter.execute("pendown");
   //turtleInterpreter.execute("rotate 180");
   //turtleInterpreter.execute("forward 100");
 
+  var turtle = new Turtle(
+    centerX,// - (turtleSprite.width / 2),
+    centerY,// - (turtleSprite.height / 2),
+    0
+  );
+
   setInterval(function () {
     renderBackground();
 
-    var turtle = new Turtle(
-      centerX - (turtleSprite.width / 2),
-      centerY - (turtleSprite.height / 2),
-      0
-    );
+    turtle.reset(centerX, centerY, 0);
 
     turtleInterpreter.commands.forEach(function(command) {
       renderCommand(turtle, command);
@@ -283,6 +320,6 @@ $(document).ready(function() {
       turtle.update(command);
     });
 
-    turtle.render(ctx, turtleSprite);
+    turtle.render(ctx);
   }, 100);
 });

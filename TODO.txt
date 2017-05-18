@@ -1,0 +1,7 @@
+- Set up test harness. Write some tests.
+- Implement commands: circle, square, goto, left, right
+- Implement command processor:
+  - Convert text description of number to an actual number. ex: a hundred => 100, zero => 0
+  - Combine mistaken sylabbles to commands. Ex: for word => forward, rotates => rotate
+  - Support for "random". Ex: random => RANDINT(10)
+  - Support multi param commands. Ex: and, comma => delimeter of args

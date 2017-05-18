@@ -1,6 +1,6 @@
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>capture microphone audio into buffer</title>
 </head>
 <body>
@@ -8,9 +8,10 @@
     src="https://code.jquery.com/jquery-3.2.1.min.js"
     integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
     crossorigin="anonymous"></script>
-  <script type="text/javascript" src="recorder.js"></script>
-  <script type="text/javascript" src="microphone_capture.js"></script>
-  <script type="text/javascript" src="turtlegraphics.js"></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  <script type="text/javascript" src="src/recorder.js"></script>
+  <script type="text/javascript" src="src/turtlegraphics.js"></script>
+  <script type="text/babel" src="src/command_processor.js"></script>
   <script type="text/javascript">
     var audioContext = new AudioContext;
     var recorder = null;
@@ -57,7 +58,12 @@
               var response = JSON.parse(oReq.response)
               var translation = response.results[0].alternatives[0];
               $("#recognize-response").html(translation.transcript);
-              turtleInterpreter.execute(translation.transcript);
+
+              var processor = new CommandProcessor();
+              var preparedCommand = processor.process(translation.transcript);
+              $("#prepared-response").html(preparedCommand);
+
+              turtleInterpreter.execute(preparedCommand);
             }
           }
 
@@ -71,7 +77,8 @@
     });
   </script>
     <input id="record" type="button" value="Record"/>
-    <span id="recognize-response"></span>
+    <div><span><strong>Recognized </strong></span><span id="recognize-response"></span></div>
+    <div><span><strong>Processed </strong></span><span id="prepared-response"></span></div>
     <div><canvas id="turtle" width='800' height='600' border='1px'></canvas></div>
 </body>
 </html>
