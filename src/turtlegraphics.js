@@ -32,17 +32,19 @@ class TurtleCommandInterpreter {
   // eval* functions must return a new TurtleCommand that
   // represents the
   evalForward(amountArg) {
+    var newCommand = new TurtleCommand();
     var pixels = parseInt(amountArg, 10);
     if (isNaN(pixels)) {
       console.log("Argument to 'forward' command is not an integer value.");
       return;
     }
 
-    return new TurtleCommand(-pixels);
+    newCommand.step = -pixels;
+    return newCommand;
   }
 
   evalPenDown() {
-    var newCommand = new TurtleCommand(0);
+    var newCommand = new TurtleCommand();
 
     newCommand.isPendown = true;
 
@@ -50,7 +52,7 @@ class TurtleCommandInterpreter {
   }
 
   evalPenUp() {
-    var newCommand = new TurtleCommand(0);
+    var newCommand = new TurtleCommand();
 
     newCommand.isPendown = false;
 
@@ -58,7 +60,7 @@ class TurtleCommandInterpreter {
   }
 
   evalPen(flagArg) {
-    var newCommand = new TurtleCommand(0);
+    var newCommand = new TurtleCommand();
 
     if (flagArg == "up") {
       newCommand.isPendown = false;
@@ -79,7 +81,7 @@ class TurtleCommandInterpreter {
       return;
     }
 
-    var newCommand = new TurtleCommand(0);
+    var newCommand = new TurtleCommand();
     newCommand.rotateDegrees = degrees;
     return newCommand;
   }
@@ -110,7 +112,7 @@ class TurtleCommandInterpreter {
       return;
     }
 
-    var newCommand = new TurtleCommand(0);
+    var newCommand = new TurtleCommand();
     newCommand.color = colorStyle;
 
     return newCommand
@@ -158,8 +160,8 @@ class TurtleCommandInterpreter {
 }
 
 class TurtleCommand {
-  constructor(step) {
-    this.step = step;
+  constructor() {
+    this.step = null;
     this.rotateDegrees = null;
     this.color = null;
     this.isPendown = null;
@@ -220,7 +222,6 @@ $(document).ready(() => {
       ctx.moveTo(turtle.xPosition, turtle.yPosition);
 
       let radians = turtle.rotationAngle * Math.PI/180;
-
       ctx.lineTo(
         turtle.xPosition + command.step * Math.cos(radians),
         turtle.yPosition + command.step * Math.sin(radians)
@@ -261,9 +262,11 @@ $(document).ready(() => {
     }
 
     update(command) {
-      let radians = this.rotationAngle * Math.PI/180;
-      this.xPosition += command.step * Math.cos(radians);
-      this.yPosition += command.step * Math.sin(radians);
+      if (command.step != null) {
+        let radians = this.rotationAngle * Math.PI/180;
+        this.xPosition += command.step * Math.cos(radians);
+        this.yPosition += command.step * Math.sin(radians);
+      }
 
       if (command.color != null) {
         this.color = command.color
@@ -307,14 +310,15 @@ $(document).ready(() => {
     0
   );
 
-  setInterval(function () {
+  turtleInterpreter.execute("forward 50");
+
+  setInterval(() => {
     renderBackground();
 
     turtle.reset(centerX, centerY, 0);
 
-    turtleInterpreter.commands.forEach(function(command) {
+    turtleInterpreter.commands.forEach((command) => {
       renderCommand(turtle, command);
-
       turtle.update(command);
     });
 
