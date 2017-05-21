@@ -51,22 +51,25 @@ class CommandProcessor {
   }
 }
 
-/*CommandProcessor.prototype.registerRule = function(rule) {
-  this.rules.push(rule);
-}
-
-CommandProcessor.prototype.process = function(commandTokens) {
-  // Apply each match rule to the command tokens.
-  while (commandTokens.length > 0) {
-
+// function rules must return the following
+//   Array[numTokensConsumed, replaceWithTokens]
+//   If numTokensConsumed is 0 then the value of replaceWithTokens is ignored
+/*parseEnglishNumbers(tokens) {
+  englishNumberMap = {
+    "hundred": 100,
+    "thousand": 1000,
+    "one": 1,
+    "two": 2,
+    "three": 3,
+    "four": 4,
+    "five": 5,
+    "six": 6,
+    "seven": 7,
+    "eight": 8,
+    "nine": 9,
+    "ten": 10
   }
-}
 
-// Rules
-var combineForWordTogether = function(tokens) {
+  [0, ""]
+}*/
 
-}
-
-var Rule = function() {
-};
-*/
