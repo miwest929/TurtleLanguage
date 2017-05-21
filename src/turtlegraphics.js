@@ -75,14 +75,15 @@ class TurtleCommandInterpreter {
   }
 
   evalRotate(degreesArg) {
-    var degrees = parseInt(degreesArg, 10);
+    let degrees = parseInt(degreesArg, 10);
     if (isNaN(degrees)) {
       console.log("Argument to 'rotate' command is not an integer value.");
       return;
     }
 
-    var newCommand = new TurtleCommand();
-    newCommand.rotateDegrees = degrees;
+    let radians = degrees * Math.PI/180;;
+    let newCommand = new TurtleCommand();
+    newCommand.rotationRadians = radians;
     return newCommand;
   }
 
@@ -162,7 +163,7 @@ class TurtleCommandInterpreter {
 class TurtleCommand {
   constructor() {
     this.step = null;
-    this.rotateDegrees = null;
+    this.rotationRadians = null;
     this.color = null;
     this.isPendown = null;
   }
@@ -213,7 +214,7 @@ $(document).ready(() => {
 
   let renderCommand = (turtle, command) => {
     // This is a rotation command
-    if (command.rotateDegrees != null) {
+    if (command.rotationRadians != null) {
       // do nothing for now
     } else if ((command.isPendown != null && command.isPendown) || turtle.isPendown) {
       ctx.strokeStyle = turtle.color;
@@ -221,10 +222,9 @@ $(document).ready(() => {
       ctx.beginPath();
       ctx.moveTo(turtle.xPosition, turtle.yPosition);
 
-      let radians = turtle.rotationAngle * Math.PI/180;
       ctx.lineTo(
-        turtle.xPosition + command.step * Math.cos(radians),
-        turtle.yPosition + command.step * Math.sin(radians)
+        turtle.xPosition + command.step * Math.cos(turtle.rotationAngle),
+        turtle.yPosition + command.step * Math.sin(turtle.rotationAngle)
       );
 
       if (command.color != null) {
@@ -263,17 +263,16 @@ $(document).ready(() => {
 
     update(command) {
       if (command.step != null) {
-        let radians = this.rotationAngle * Math.PI/180;
-        this.xPosition += command.step * Math.cos(radians);
-        this.yPosition += command.step * Math.sin(radians);
+        this.xPosition += command.step * Math.cos(this.rotationAngle);
+        this.yPosition += command.step * Math.sin(this.rotationAngle);
       }
 
       if (command.color != null) {
         this.color = command.color
       }
 
-      if (command.rotateDegrees != null) {
-        this.rotationAngle = command.rotateDegrees;
+      if (command.rotationRadians != null) {
+        this.rotationAngle = command.rotationRadians;
       }
 
       if (command.isPendown != null) {
@@ -292,7 +291,7 @@ $(document).ready(() => {
     render(context) {
       context.save();
       context.translate(this.xPosition, this.yPosition);
-      context.rotate(this.rotationAngle * Math.PI/180)
+      context.rotate(this.rotationAngle)
 
       if (this.isPendown) {
         context.drawImage(this.turtleSprite, 0, 0);
@@ -310,6 +309,12 @@ $(document).ready(() => {
     0
   );
 
+  turtleInterpreter.execute("forward 50");
+  turtleInterpreter.execute("rotate 90");
+  turtleInterpreter.execute("forward 50");
+  turtleInterpreter.execute("rotate 180");
+  turtleInterpreter.execute("forward 50");
+  turtleInterpreter.execute("rotate 270");
   turtleInterpreter.execute("forward 50");
 
   setInterval(() => {
