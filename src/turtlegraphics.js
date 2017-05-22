@@ -1,10 +1,6 @@
 class TurtleCommand {
   constructor() {
   }
-
-  isDrawCommand() {
-    return false;
-  }
 }
 
 class GoHomeCommand extends TurtleCommand {
@@ -43,9 +39,13 @@ class LineCommand extends TurtleCommand {
 
     this.step = step;
   }
+}
 
-  isDrawCommand() {
-    return true;
+class CircleCommand extends TurtleCommand {
+  constructor(radius) {
+    super();
+
+    this.radius = radius;
   }
 }
 
@@ -71,7 +71,8 @@ class TurtleCommandInterpreter {
       up: this.evalPenUp,
       home: this.evalHome,
       hide: this.evalHide,
-      show: this.evalShow
+      show: this.evalShow,
+      circle: this.evalCircle
     };
 
     this.fnArgCountMap = {
@@ -84,7 +85,8 @@ class TurtleCommandInterpreter {
       up: 0,
       home: 0,
       hide: 0,
-      show: 0
+      show: 0,
+      circle: 1
     }
   }
 
@@ -100,6 +102,16 @@ class TurtleCommandInterpreter {
 
   evalHome() {
     return new GoHomeCommand();
+  }
+
+  evalCircle(radiusArg) {
+    let radius = parseInt(radiusArg, 10);
+    if (isNaN(radius)) {
+      console.log("Argument to 'circle' command is not an integer value.");
+      return nil;
+    }
+
+    return new CircleCommand(radius);
   }
 
   evalForward(amountArg) {
@@ -250,7 +262,11 @@ $(document).ready(() => {
   };
 
   let renderCommand = (turtle, command) => {
-    if (turtle.isPendown && command instanceof LineCommand) {
+    if (!turtle.isPendown) {
+      return;
+    }
+
+    if (command instanceof LineCommand) {
       ctx.strokeStyle = turtle.color;
 
       ctx.beginPath();
@@ -260,6 +276,15 @@ $(document).ready(() => {
         turtle.xPosition + command.step * Math.cos(turtle.rotationAngle),
         turtle.yPosition + command.step * Math.sin(turtle.rotationAngle)
       );
+
+      ctx.lineWidth = turtle.strokeWidth;
+      ctx.stroke();
+    } else if (command instanceof CircleCommand) {
+      ctx.beginPath();
+
+      ctx.arc(turtle.xPosition, turtle.yPosition, command.radius, 0, 2 * Math.PI, false);
+      ctx.lineWidth = turtle.strokeWidth;
+      ctx.strokeStyle = turtle.color;
 
       ctx.stroke();
     }
@@ -290,6 +315,7 @@ $(document).ready(() => {
       this.turtleSprite = loadImage("imgs/turtle.png");
       this.turtlePenupSprite = loadImage("imgs/turtlepenup.png");
       this.showTurtle = true;
+      this.strokeWidth = 2;
     }
 
     update(command) {
@@ -332,7 +358,7 @@ $(document).ready(() => {
         context.restore();
       } else {
         context.beginPath();
-        context.arc(this.xPosition, this.yPosition, 5, 0, 2 * Math.PI, false);
+        context.arc(this.xPosition, this.yPosition, this.strokeWidth, 0, 2 * Math.PI, false);
         context.fillStyle = this.color;
         context.fill();
         context.stroke();
@@ -360,10 +386,7 @@ $(document).ready(() => {
   turtleInterpreter.execute("rotate 135");
   turtleInterpreter.execute("forward 50");
   turtleInterpreter.execute("hide");
-  turtleInterpreter.execute("up");
-  turtleInterpreter.execute("forward 100");
-  turtleInterpreter.execute("down");
-  turtleInterpreter.execute("forward 50");
+  turtleInterpreter.execute("circle 15");
 
   setInterval(() => {
     renderBackground();
