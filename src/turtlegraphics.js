@@ -1,3 +1,62 @@
+class TurtleCommand {
+  constructor() {
+  }
+
+  isDrawCommand() {
+    return false;
+  }
+}
+
+class GoHomeCommand extends TurtleCommand {
+  constructor() {
+    super();
+  }
+}
+
+class ChangePenStateCommand extends TurtleCommand {
+  constructor(penStateFlag) {
+    super();
+
+    this.isPendown = penStateFlag;
+  }
+}
+
+class ShowTurtleCommand extends TurtleCommand {
+  constructor(showTurtleFlag) {
+    super();
+
+    this.showTurtleFlag = showTurtleFlag;
+  }
+}
+
+class RotateCommand extends TurtleCommand {
+  constructor(radians) {
+    super();
+
+    this.radians = radians;
+  }
+}
+
+class LineCommand extends TurtleCommand {
+  constructor(step) {
+    super();
+
+    this.step = step;
+  }
+
+  isDrawCommand() {
+    return true;
+  }
+}
+
+class ColorCommand extends TurtleCommand {
+  constructor(color) {
+    super();
+
+    this.color = color;
+  }
+}
+
 class TurtleCommandInterpreter {
   constructor() {
     this.commands = [];
@@ -31,47 +90,48 @@ class TurtleCommandInterpreter {
 
   // eval* functions must return a new TurtleCommand that
   // represents the
+  evalHide() {
+    return new ShowTurtleCommand(false);
+  }
+
+  evalShow() {
+    return new ShowTurtleCommand(true);
+  }
+
+  evalHome() {
+    return new GoHomeCommand();
+  }
+
   evalForward(amountArg) {
-    var newCommand = new TurtleCommand();
     var pixels = parseInt(amountArg, 10);
     if (isNaN(pixels)) {
       console.log("Argument to 'forward' command is not an integer value.");
       return;
     }
 
-    newCommand.step = -pixels;
-    return newCommand;
+    return new LineCommand(-pixels);
   }
 
   evalPenDown() {
-    var newCommand = new TurtleCommand();
-
-    newCommand.isPendown = true;
-
-    return newCommand;
+    return new ChangePenStateCommand(true);
   }
 
   evalPenUp() {
-    var newCommand = new TurtleCommand();
-
-    newCommand.isPendown = false;
-
-    return newCommand;
+    return new ChangePenStateCommand(false);
   }
 
   evalPen(flagArg) {
-    var newCommand = new TurtleCommand();
-
+    let newState = null;
     if (flagArg == "up") {
-      newCommand.isPendown = false;
+      newState = false;
     } else if (flagArg == "down") {
-      newCommand.isPendown = true;
+      newState = true;
     } else {
       console.log("Invalid argument '" + flagArg + "' to 'pen' command.");
       return nil;
     }
 
-    return newCommand;
+    return new ChangePenStateCommand(newState);
   }
 
   evalRotate(degreesArg) {
@@ -82,13 +142,11 @@ class TurtleCommandInterpreter {
     }
 
     let radians = degrees * Math.PI/180;;
-    let newCommand = new TurtleCommand();
-    newCommand.rotationRadians = radians;
-    return newCommand;
+    return new RotateCommand(radians);
   }
 
   evalColor(colorArg) {
-    var colorMap = {
+    let colorMap = {
       red: "rgb(256, 0, 0)",
       green: "rgb(0, 256, 0)",
       blue: "rgb(0, 0, 256)",
@@ -106,17 +164,14 @@ class TurtleCommandInterpreter {
       brown: "rgb(139,69,19)"
     }
 
-    var colorStyle = colorMap[colorArg];
+    let colorStyle = colorMap[colorArg];
 
     if (colorStyle == undefined) {
       console.log("color '" + colorArg + "' is not recognized");
       return;
     }
 
-    var newCommand = new TurtleCommand();
-    newCommand.color = colorStyle;
-
-    return newCommand
+    return new ColorCommand(colorStyle);
   }
 
   evalUndo() {
@@ -160,24 +215,6 @@ class TurtleCommandInterpreter {
   }
 }
 
-class TurtleCommand {
-  constructor() {
-    this.step = null;
-    this.rotationRadians = null;
-    this.color = null;
-    this.isPendown = null;
-  }
-}
-
-//    left: 1,
-//    right: 1
-
-/*TurtleCommandInterpreter.prototype.evalHome = function() {
-  // Send turtle to home position (origin)
-  return new TurtleCommand(-pixels);
-}*/
-
-
 /*TurtleCommandInterpreter.prototype.evalLeft = function(degreesArg) {
   var degrees = parseInt(degreesArg, 10);
   if (isNaN(degrees)) {
@@ -213,10 +250,7 @@ $(document).ready(() => {
   };
 
   let renderCommand = (turtle, command) => {
-    // This is a rotation command
-    if (command.rotationRadians != null) {
-      // do nothing for now
-    } else if ((command.isPendown != null && command.isPendown) || turtle.isPendown) {
+    if (turtle.isPendown && command instanceof LineCommand) {
       ctx.strokeStyle = turtle.color;
 
       ctx.beginPath();
@@ -226,10 +260,6 @@ $(document).ready(() => {
         turtle.xPosition + command.step * Math.cos(turtle.rotationAngle),
         turtle.yPosition + command.step * Math.sin(turtle.rotationAngle)
       );
-
-      if (command.color != null) {
-        ctx.strokeStyle = command.color;
-      }
 
       ctx.stroke();
     }
@@ -259,24 +289,23 @@ $(document).ready(() => {
       this.isPendown = true;
       this.turtleSprite = loadImage("imgs/turtle.png");
       this.turtlePenupSprite = loadImage("imgs/turtlepenup.png");
+      this.showTurtle = true;
     }
 
     update(command) {
-      if (command.step != null) {
+      if (command instanceof LineCommand) {
         this.xPosition += command.step * Math.cos(this.rotationAngle);
         this.yPosition += command.step * Math.sin(this.rotationAngle);
-      }
-
-      if (command.color != null) {
-        this.color = command.color
-      }
-
-      if (command.rotationRadians != null) {
-        this.rotationAngle = command.rotationRadians;
-      }
-
-      if (command.isPendown != null) {
+      } else if (command instanceof ColorCommand) {
+        this.color = command.color;
+      } else if (command instanceof RotateCommand) {
+        this.rotationAngle = command.radians;
+      } else if (command instanceof ChangePenStateCommand) {
         this.isPendown = command.isPendown;
+      } else if (command instanceof GoHomeCommand) {
+        this.reset(centerX, centerY, 0);
+      } else if (command instanceof ShowTurtleCommand) {
+        this.showTurtle = command.showTurtleFlag;
       }
     }
 
@@ -289,17 +318,25 @@ $(document).ready(() => {
     }
 
     render(context) {
-      context.save();
-      context.translate(this.xPosition, this.yPosition);
-      context.rotate(this.rotationAngle)
+      if (this.showTurtle) {
+        context.save();
+        context.translate(this.xPosition, this.yPosition);
+        context.rotate(this.rotationAngle)
 
-      if (this.isPendown) {
-        context.drawImage(this.turtleSprite, 0, 0);
+        if (this.isPendown) {
+          context.drawImage(this.turtleSprite, 0, 0);
+        } else {
+          context.drawImage(this.turtlePenupSprite, 0, 0);
+        }
+
+        context.restore();
       } else {
-        context.drawImage(this.turtlePenupSprite, 0, 0);
+        context.beginPath();
+        context.arc(this.xPosition, this.yPosition, 5, 0, 2 * Math.PI, false);
+        context.fillStyle = this.color;
+        context.fill();
+        context.stroke();
       }
-
-      context.restore();
     }
   }
 
@@ -315,6 +352,17 @@ $(document).ready(() => {
   turtleInterpreter.execute("rotate 180");
   turtleInterpreter.execute("forward 50");
   turtleInterpreter.execute("rotate 270");
+  turtleInterpreter.execute("forward 50");
+  turtleInterpreter.execute("home");
+  turtleInterpreter.execute("color purple");
+  turtleInterpreter.execute("rotate 45");
+  turtleInterpreter.execute("forward 50");
+  turtleInterpreter.execute("rotate 135");
+  turtleInterpreter.execute("forward 50");
+  turtleInterpreter.execute("hide");
+  turtleInterpreter.execute("up");
+  turtleInterpreter.execute("forward 100");
+  turtleInterpreter.execute("down");
   turtleInterpreter.execute("forward 50");
 
   setInterval(() => {
