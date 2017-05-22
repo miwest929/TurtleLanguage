@@ -33,6 +33,14 @@ class RotateCommand extends TurtleCommand {
   }
 }
 
+class SetWidthCommand extends TurtleCommand {
+  constructor(width) {
+    super();
+
+    this.width = width;
+  }
+}
+
 class LineCommand extends TurtleCommand {
   constructor(step) {
     super();
@@ -72,7 +80,8 @@ class TurtleCommandInterpreter {
       home: this.evalHome,
       hide: this.evalHide,
       show: this.evalShow,
-      circle: this.evalCircle
+      circle: this.evalCircle,
+      width: this.evalWidth
     };
 
     this.fnArgCountMap = {
@@ -86,7 +95,8 @@ class TurtleCommandInterpreter {
       home: 0,
       hide: 0,
       show: 0,
-      circle: 1
+      circle: 1,
+      width: 1
     }
   }
 
@@ -102,6 +112,16 @@ class TurtleCommandInterpreter {
 
   evalHome() {
     return new GoHomeCommand();
+  }
+
+  evalWidth(widthArg) {
+    let width = parseInt(widthArg, 10);
+    if (isNaN(width)) {
+      console.log("Argument to 'width' command is not an integer value.");
+      return nil;
+    }
+
+    return new SetWidthCommand(width);
   }
 
   evalCircle(radiusArg) {
@@ -304,7 +324,6 @@ $(document).ready(() => {
     return drawing;
   }
 
-
   class Turtle {
     constructor(xPosition, yPosition, rotationAngle) {
       this.xPosition = xPosition;
@@ -332,6 +351,8 @@ $(document).ready(() => {
         this.reset(centerX, centerY, 0);
       } else if (command instanceof ShowTurtleCommand) {
         this.showTurtle = command.showTurtleFlag;
+      } else if (command instanceof SetWidthCommand) {
+        this.strokeWidth = command.width;
       }
     }
 
@@ -341,6 +362,7 @@ $(document).ready(() => {
       this.rotationAngle = rotationAngle;
       this.color = "rgb(256, 256, 256)";
       this.isPendown = true;
+      this.strokeWidth = 2;
     }
 
     render(context) {
@@ -384,8 +406,10 @@ $(document).ready(() => {
   turtleInterpreter.execute("rotate 45");
   turtleInterpreter.execute("forward 50");
   turtleInterpreter.execute("rotate 135");
+  turtleInterpreter.execute("width 10");
   turtleInterpreter.execute("forward 50");
   turtleInterpreter.execute("hide");
+  turtleInterpreter.execute("width 5");
   turtleInterpreter.execute("circle 15");
 
   setInterval(() => {
