@@ -10,29 +10,7 @@
     crossorigin="anonymous"></script>
   <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
   <script type="text/javascript" src="src/recorder.js"></script>
-  <script>
-    // Get all the babel scripts
-    var babel_scripts = document.querySelectorAll('script[type="text/babel"]');
-
-    // Loop over them
-    Array.prototype.forEach.call(babel_scripts, function (script, index, arr) {
-      jQuery.get(script.src, function(input) {
-        var output = Babel.transform( input, { presets: ['es2015', 'react'] }).code;
-        // Create a new script tag of `javascript` type
-        var new_script = document.createElement('script');
-        new_script.setAttribute('type', 'text/javascript');
-        // Set the contents of the script to the transpiled code
-        new_script.textContent = output;
-
-        // Remove the babel script
-        script.remove();
-        // Inject the new transpiled JS
-        document.querySelector('body').appendChild(new_script);
-      });
-    });
-  </script>
   <script type="text/babel" src="http://localhost:8000/src/turtlegraphics.js"></script>
-  <script type="text/babel" src="http://localhost:8000/src/command_processor.js"></script>
 
   <script type="text/javascript">
     var audioContext = new AudioContext;

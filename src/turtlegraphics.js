@@ -1,3 +1,57 @@
+class CommandProcessor {
+  constructor() {
+    this.matchRules = [
+      {match: ["for", "word"], replace: ["forward"]},
+      {match: ["4", "word"], replace: ["forward"]},
+      {match: ["four", "word"], replace: ["forward"]},
+      {match: ["go", "to"], replace: ["goto"]}
+    ];
+    this.functionRules = [];
+  }
+
+  tokenize(command) {
+    return command.toLowerCase().split(" ");
+  }
+
+  process(command) {
+    let tokens = this.tokenize(command);
+
+    for (let index=0; index < tokens.length; index++) {
+      let remainder = tokens.slice(index);
+
+      for (let currMatchRule of this.matchRules) {
+        if (this.testMatchRule(currMatchRule, remainder)) {
+          Array.prototype.splice.apply(
+            tokens,
+            [index, currMatchRule.match.length].concat(currMatchRule.replace)
+          );
+        }
+      }
+    }
+
+    return tokens.join(" ");
+  }
+
+  // Returns a boolean
+  testMatchRule(rule, tokens) {
+    let matchIndex = 0;
+
+    for (let currToken of tokens) {
+      if (matchIndex == rule.match.length) {
+        return true;
+      }
+
+      if (rule.match[matchIndex] != currToken) {
+        return false;
+      }
+
+      matchIndex += 1;
+    }
+
+    return (matchIndex == rule.match.length);
+  }
+}
+
 class TurtleCommand {
   constructor() {
   }
@@ -57,6 +111,14 @@ class CircleCommand extends TurtleCommand {
   }
 }
 
+class PolygonCommand extends TurtleCommand {
+  constructor(sides) {
+    super();
+
+    this.sides = sides;
+  }
+}
+
 class ColorCommand extends TurtleCommand {
   constructor(color) {
     super();
@@ -81,7 +143,8 @@ class TurtleCommandInterpreter {
       hide: this.evalHide,
       show: this.evalShow,
       circle: this.evalCircle,
-      width: this.evalWidth
+      width: this.evalWidth,
+      clear: this.evalClear
     };
 
     this.fnArgCountMap = {
@@ -96,7 +159,8 @@ class TurtleCommandInterpreter {
       hide: 0,
       show: 0,
       circle: 1,
-      width: 1
+      width: 1,
+      clear: 0
     }
   }
 
@@ -208,6 +272,12 @@ class TurtleCommandInterpreter {
 
   evalUndo() {
     this.commands.pop();
+
+    return null;
+  }
+
+  evalClear() {
+    this.commands = [];
 
     return null;
   }
@@ -380,7 +450,7 @@ $(document).ready(() => {
         context.restore();
       } else {
         context.beginPath();
-        context.arc(this.xPosition, this.yPosition, this.strokeWidth, 0, 2 * Math.PI, false);
+        context.arc(this.xPosition, this.yPosition, 2, 0, 2 * Math.PI, false);
         context.fillStyle = this.color;
         context.fill();
         context.stroke();
@@ -394,6 +464,7 @@ $(document).ready(() => {
     0
   );
 
+  turtleInterpreter.execute("hide");
   turtleInterpreter.execute("forward 50");
   turtleInterpreter.execute("rotate 90");
   turtleInterpreter.execute("forward 50");
@@ -406,10 +477,7 @@ $(document).ready(() => {
   turtleInterpreter.execute("rotate 45");
   turtleInterpreter.execute("forward 50");
   turtleInterpreter.execute("rotate 135");
-  turtleInterpreter.execute("width 10");
   turtleInterpreter.execute("forward 50");
-  turtleInterpreter.execute("hide");
-  turtleInterpreter.execute("width 5");
   turtleInterpreter.execute("circle 15");
 
   setInterval(() => {
