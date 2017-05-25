@@ -87,6 +87,15 @@ class RotateCommand extends TurtleCommand {
   }
 }
 
+class GotoCommand extends TurtleCommand {
+  constructor(x, y) {
+    super();
+
+    this.x = x;
+    this.y = y;
+  }
+}
+
 class SetWidthCommand extends TurtleCommand {
   constructor(width) {
     super();
@@ -144,7 +153,8 @@ class TurtleCommandInterpreter {
       show: this.evalShow,
       circle: this.evalCircle,
       width: this.evalWidth,
-      clear: this.evalClear
+      clear: this.evalClear,
+      goto: this.evalGoto
     };
 
     this.fnArgCountMap = {
@@ -160,12 +170,30 @@ class TurtleCommandInterpreter {
       show: 0,
       circle: 1,
       width: 1,
-      clear: 0
+      clear: 0,
+      "goto": 2
     }
   }
 
   // eval* functions must return a new TurtleCommand that
   // represents the
+  evalGoto(xArg, yArg) {
+    let x = parseInt(xArg, 10);
+    let y = parseInt(yArg, 10);
+
+    if (isNaN(x)) {
+      console.log("Argument 'x' to 'goto' command is not an integer value.");
+      return nil;
+    }
+
+    if (isNaN(y)) {
+      console.log("Argument 'y' to 'goto' command is not an integer value.");
+      return nil;
+    }
+
+    return new GotoCommand(x, y);
+  }
+
   evalHide() {
     return new ShowTurtleCommand(false);
   }
@@ -285,7 +313,14 @@ class TurtleCommandInterpreter {
   execute(command) {
     // forward and FORWARD are the same command
     command = command.toLowerCase();
-    var tokens = command.split(" ");
+    var tokens = command.split(/[ ,]/);
+
+    // Remove empty strings
+    let index = tokens.indexOf("");
+    while (index !== -1) {
+      tokens.splice(index, 1);
+      index = tokens.indexOf("");
+    }
 
     while (tokens.length > 0) {
       var fnName = tokens.shift()
@@ -423,6 +458,9 @@ $(document).ready(() => {
         this.showTurtle = command.showTurtleFlag;
       } else if (command instanceof SetWidthCommand) {
         this.strokeWidth = command.width;
+      } else if (command instanceof GotoCommand) {
+        this.xPosition = command.x;
+        this.yPosition = command.y;
       }
     }
 
@@ -479,6 +517,7 @@ $(document).ready(() => {
   turtleInterpreter.execute("rotate 135");
   turtleInterpreter.execute("forward 50");
   turtleInterpreter.execute("circle 15");
+  turtleInterpreter.execute("goto 150, 100");
 
   setInterval(() => {
     renderBackground();
