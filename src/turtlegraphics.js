@@ -89,6 +89,46 @@ class CommandProcessor {
   }
 }
 
+class ColorWheel {
+  static lookup(colorWord) {
+    let colorMap = {
+      red: "rgb(256, 0, 0)",
+      green: "rgb(0, 256, 0)",
+      blue: "rgb(0, 0, 256)",
+      yellow: "rgb(256, 256, 0)",
+      purple: "rgb(128,0,128)",
+      pink: "rgb(255,192,203)",
+      orange: "rgb(255,140,0)",
+      lime: "rgb(0,255,0)",
+      silver: "rgb(192,192,192)",
+      gold: "rgb(255,215,0)",
+      olive: "rgb(128,128,0)",
+      beige: "rgb(245,245,220)",
+      aqua: "rgb(0,255,255)",
+      teal: "rgb(0,128,128)",
+      brown: "rgb(139,69,19)",
+      black: "rgb(0,0,0)",
+      white: "rgb(255,255,255)"
+    }
+
+    return colorMap[colorWord];
+  }
+
+  static contrasting(color) {
+    let components = color.match(/\d+/g);
+    let red = parseInt(components[0]);
+    let green = parseInt(components[1]);
+    let blue = parseInt(components[2]);
+    let avgShade = (red + blue + green) / 3;
+
+    if (avgShade >= 128) {
+      return "rgb(0, 0, 0)";
+    } else {
+      return "rgb(255, 255, 255)";
+    }
+  }
+}
+
 class TurtleCommand {
   constructor() {
   }
@@ -117,6 +157,22 @@ class ShowTurtleCommand extends TurtleCommand {
 }
 
 class RotateCommand extends TurtleCommand {
+  constructor(radians) {
+    super();
+
+    this.radians = radians;
+  }
+}
+
+class RightCommand extends TurtleCommand {
+  constructor(radians) {
+    super();
+
+    this.radians = radians;
+  }
+}
+
+class LeftCommand extends TurtleCommand {
   constructor(radians) {
     super();
 
@@ -325,28 +381,28 @@ class TurtleCommandInterpreter {
     return new RotateCommand(radians);
   }
 
-  evalColor(colorArg) {
-    let colorMap = {
-      red: "rgb(256, 0, 0)",
-      green: "rgb(0, 256, 0)",
-      blue: "rgb(0, 0, 256)",
-      yellow: "rgb(256, 256, 0)",
-      purple: "rgb(128,0,128)",
-      pink: "rgb(255,192,203)",
-      orange: "rgb(255,140,0)",
-      lime: "rgb(0,255,0)",
-      silver: "rgb(192,192,192)",
-      gold: "rgb(255,215,0)",
-      olive: "rgb(128,128,0)",
-      beige: "rgb(245,245,220)",
-      aqua: "rgb(0,255,255)",
-      teal: "rgb(0,128,128)",
-      brown: "rgb(139,69,19)",
-      black: "rgb(0,0,0)",
-      white: "rgb(255,255,255)"
+  evalLeft(degreesArg) {
+    let degrees = parseInt(degreesArg, 10);
+    if (isNaN(degrees)) {
+      console.error("Argument to 'left' command is not an integer value.");
     }
 
-    let colorStyle = colorMap[colorArg];
+    let radians = degrees * Math.PI / 180;
+    return new LeftCommand(radians);
+  }
+
+  evalRight(degreesArg) {
+    let degrees = parseInt(degreesArg, 10);
+    if (isNaN(degrees)) {
+      console.error("Argument to 'left' command is not an integer value.");
+    }
+
+    let radians = degrees * Math.PI / 180;
+    return new RightCommand(radians);
+  }
+
+  evalColor(colorArg) {
+    let colorStyle = ColorWheel.lookup(colorArg);
 
     if (colorStyle == undefined) {
       console.error("color '" + colorArg + "' is not recognized");
@@ -367,6 +423,7 @@ class TurtleCommandInterpreter {
 
     return null;
   }
+
 
   execute(command) {
     // forward and FORWARD are the same command
@@ -409,35 +466,6 @@ class TurtleCommandInterpreter {
     }
   }
 }
-
-//evalLeft(degreesArg) {
-
-//}
-
-//evalRight(degreesArg) {
-
-//}
-
-/*TurtleCommandInterpreter.prototype.evalLeft = function(degreesArg) {
-  var degrees = parseInt(degreesArg, 10);
-  if (isNaN(degrees)) {
-    console.error("Argument to 'rotate' command is not an integer value.");
-    return;
-  }
-
-  //TODO: Implement relative angle update
-}
-
-TurtleCommandInterpreter.prototype.evalRight = function(degreesArg) {
-  var degrees = parseInt(degreesArg, 10);
-  if (isNaN(degrees)) {
-    console.error("Argument to 'rotate' command is not an integer value.");
-    return;
-  }
-
-  //TODO: Implement relative angle update
-}
-*/
 
 var turtleInterpreter = new TurtleCommandInterpreter();
 
@@ -534,6 +562,10 @@ $(document).ready(() => {
         this.color = command.color;
       } else if (command instanceof RotateCommand) {
         this.rotationAngle = command.radians;
+      } else if (command instanceof LeftCommand) {
+        this.rotationAngle -= command.radians;
+      } else if (command instanceof RightCommand) {
+        this.rotationAngle += command.radians;
       } else if (command instanceof ChangePenStateCommand) {
         this.isPendown = command.isPendown;
       } else if (command instanceof GoHomeCommand) {
@@ -572,9 +604,10 @@ $(document).ready(() => {
         context.restore();
       } else {
         context.beginPath();
-        context.arc(this.xPosition, this.yPosition, 2, 0, 2 * Math.PI, false);
+        context.arc(this.xPosition, this.yPosition, 5, 0, 2 * Math.PI, false);
         context.fillStyle = this.color;
         context.fill();
+        context.strokeStyle = ColorWheel.contrasting(this.color);
         context.stroke();
       }
     }
@@ -588,12 +621,19 @@ $(document).ready(() => {
 
   turtleInterpreter.execute("hide");
   turtleInterpreter.execute("forward 50");
-  turtleInterpreter.execute("rotate 90");
+  turtleInterpreter.execute("right 90");
   turtleInterpreter.execute("forward 50");
-  turtleInterpreter.execute("rotate 180");
+  turtleInterpreter.execute("right 90");
   turtleInterpreter.execute("forward 50");
-  turtleInterpreter.execute("rotate 270");
+  turtleInterpreter.execute("right 90");
   turtleInterpreter.execute("forward 50");
+  turtleInterpreter.execute("left 90");
+  turtleInterpreter.execute("forward 50");
+  turtleInterpreter.execute("left 90");
+  turtleInterpreter.execute("forward 50");
+  turtleInterpreter.execute("left 90");
+  turtleInterpreter.execute("forward 50");
+/*
   turtleInterpreter.execute("home");
   turtleInterpreter.execute("color purple");
   turtleInterpreter.execute("rotate 45");
@@ -601,7 +641,7 @@ $(document).ready(() => {
   turtleInterpreter.execute("rotate 135");
   turtleInterpreter.execute("forward 50");
   turtleInterpreter.execute("polygon 8");
-
+*/
   setInterval(() => {
     renderBackground();
 
