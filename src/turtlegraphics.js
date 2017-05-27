@@ -9,7 +9,8 @@ class CommandProcessor {
       {match: ["4", "word"], replace: ["forward"]},
       {match: ["four", "word"], replace: ["forward"]},
       {match: ["go", "to"], replace: ["goto"]},
-      {match: ["polygons"], replace: ["polygon"]}
+      {match: ["polygons"], replace: ["polygon"]},
+      {match: ["write"], replace: ["right"]}
     ];
     this.functionRules = [this.matchEnglishNumbers];
   }
@@ -612,11 +613,24 @@ $(document).ready(() => {
 
         context.restore();
       } else {
+        let iconWidth = 5;
+
         context.beginPath();
-        context.arc(this.xPosition, this.yPosition, 5, 0, 2 * Math.PI, false);
+        context.arc(this.xPosition, this.yPosition, iconWidth, 0, 2 * Math.PI, false);
         context.fillStyle = this.color;
         context.fill();
         context.strokeStyle = ColorWheel.contrasting(this.color);
+        context.stroke();
+
+        context.beginPath();
+        context.arc(
+          this.xPosition,
+          this.yPosition,
+          iconWidth,
+          this.rotationAngle - 0.4 + Math.PI,
+          this.rotationAngle + 0.4 + Math.PI
+        );
+        context.strokeStyle = this.color;
         context.stroke();
       }
     }
@@ -642,6 +656,9 @@ $(document).ready(() => {
   turtleInterpreter.execute("forward 50");
   turtleInterpreter.execute("left 90");
   turtleInterpreter.execute("forward 50");
+  turtleInterpreter.execute("left 45");
+  turtleInterpreter.execute("forward 50");
+
 /*
   turtleInterpreter.execute("home");
   turtleInterpreter.execute("color purple");
