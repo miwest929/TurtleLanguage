@@ -1,7 +1,7 @@
 <html>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <title>capture microphone audio into buffer</title>
+  <title>Speech Interface for Turtle Graphics</title>
 </head>
 <body>
   <script
@@ -76,10 +76,12 @@
       }
     });
   </script>
-    <input id="record" type="button" value="Record"/>
-    <div><span><strong>Recognized </strong></span><span id="recognize-response"></span></div>
-    <div><span><strong>Processed </strong></span><span id="prepared-response"></span></div>
-    <div><canvas id="turtle" width='800' height='600' border='1px'></canvas></div>
+
+  <input id="record" type="button" value="Record"/>
+  <div><span><strong>Recognized </strong></span><span id="recognize-response"></span></div>
+  <div><span><strong>Processed </strong></span><span id="prepared-response"></span></div>
+  <div id="errors"><ul></ul></div>
+  <div><canvas id="turtle" width='800' height='600' border='1px'></canvas></div>
 </body>
 </html>
 

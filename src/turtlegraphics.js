@@ -1,3 +1,7 @@
+// Occasionally, the text returned by speech processor isn't exactly
+// what the user meant. Since we have full control over the context
+// we can use a simple rules engine to massage the incoming text into
+// something that makes more sense.
 class CommandProcessor {
   constructor() {
     this.matchRules = [
@@ -114,6 +118,11 @@ class ColorWheel {
     return colorMap[colorWord];
   }
 
+  // This is a simplistic algorithm for computing
+  // a constrasting shade given a specific color.
+  // Determine if given color is light or dark by
+  // comparing the colors average shade value.
+  // If dark then return WHITE. If light then BLACK.
   static contrasting(color) {
     let components = color.match(/\d+/g);
     let red = parseInt(components[0]);
@@ -642,6 +651,7 @@ $(document).ready(() => {
   turtleInterpreter.execute("forward 50");
   turtleInterpreter.execute("polygon 8");
 */
+
   setInterval(() => {
     renderBackground();
 
