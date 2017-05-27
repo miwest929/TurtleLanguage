@@ -154,7 +154,8 @@ class TurtleCommandInterpreter {
       circle: this.evalCircle,
       width: this.evalWidth,
       clear: this.evalClear,
-      goto: this.evalGoto
+      "goto": this.evalGoto,
+      polygon: this.evalPolygon
     };
 
     this.fnArgCountMap = {
@@ -171,7 +172,8 @@ class TurtleCommandInterpreter {
       circle: 1,
       width: 1,
       clear: 0,
-      "goto": 2
+      "goto": 2,
+      polygon: 1
     }
   }
 
@@ -182,12 +184,12 @@ class TurtleCommandInterpreter {
     let y = parseInt(yArg, 10);
 
     if (isNaN(x)) {
-      console.log("Argument 'x' to 'goto' command is not an integer value.");
+      console.error("Argument 'x' to 'goto' command is not an integer value.");
       return nil;
     }
 
     if (isNaN(y)) {
-      console.log("Argument 'y' to 'goto' command is not an integer value.");
+      console.error("Argument 'y' to 'goto' command is not an integer value.");
       return nil;
     }
 
@@ -209,7 +211,7 @@ class TurtleCommandInterpreter {
   evalWidth(widthArg) {
     let width = parseInt(widthArg, 10);
     if (isNaN(width)) {
-      console.log("Argument to 'width' command is not an integer value.");
+      console.error("Argument to 'width' command is not an integer value.");
       return nil;
     }
 
@@ -219,7 +221,7 @@ class TurtleCommandInterpreter {
   evalCircle(radiusArg) {
     let radius = parseInt(radiusArg, 10);
     if (isNaN(radius)) {
-      console.log("Argument to 'circle' command is not an integer value.");
+      console.error("Argument to 'circle' command is not an integer value.");
       return nil;
     }
 
@@ -229,11 +231,24 @@ class TurtleCommandInterpreter {
   evalForward(amountArg) {
     var pixels = parseInt(amountArg, 10);
     if (isNaN(pixels)) {
-      console.log("Argument to 'forward' command is not an integer value.");
+      console.error("Argument to 'forward' command is not an integer value.");
       return;
     }
 
     return new LineCommand(-pixels);
+  }
+
+  evalPolygon(sidesArg) {
+    var sides = parseInt(sidesArg, 10);
+    if (isNaN(sides)) {
+      console.error("Argument to 'polygon' command is not an integer value.");
+      return;
+    } else if (sides <= 2) {
+      console.error("Argument to 'polygon' command must be greater than 2.");
+      return;
+    }
+
+    return new PolygonCommand(sides);
   }
 
   evalPenDown() {
@@ -251,7 +266,7 @@ class TurtleCommandInterpreter {
     } else if (flagArg == "down") {
       newState = true;
     } else {
-      console.log("Invalid argument '" + flagArg + "' to 'pen' command.");
+      console.error("Invalid argument '" + flagArg + "' to 'pen' command.");
       return nil;
     }
 
@@ -261,7 +276,7 @@ class TurtleCommandInterpreter {
   evalRotate(degreesArg) {
     let degrees = parseInt(degreesArg, 10);
     if (isNaN(degrees)) {
-      console.log("Argument to 'rotate' command is not an integer value.");
+      console.error("Argument to 'rotate' command is not an integer value.");
       return;
     }
 
@@ -291,7 +306,7 @@ class TurtleCommandInterpreter {
     let colorStyle = colorMap[colorArg];
 
     if (colorStyle == undefined) {
-      console.log("color '" + colorArg + "' is not recognized");
+      console.error("color '" + colorArg + "' is not recognized");
       return;
     }
 
@@ -327,14 +342,14 @@ class TurtleCommandInterpreter {
       var fn = this.functionEvalMap[fnName]
 
       if (fn == undefined) {
-        console.log("'" + fnName + "' is not a valid command.");
+        console.error("'" + fnName + "' is not a valid command.");
         return;
       }
 
       var argsCount = this.fnArgCountMap[fnName];
 
       if (argsCount == undefined) {
-        console.log("Unknown argument count for function '" + fnName + "'");
+        console.error("Unknown argument count for function '" + fnName + "'");
         return;
       }
 
@@ -355,7 +370,7 @@ class TurtleCommandInterpreter {
 /*TurtleCommandInterpreter.prototype.evalLeft = function(degreesArg) {
   var degrees = parseInt(degreesArg, 10);
   if (isNaN(degrees)) {
-    console.log("Argument to 'rotate' command is not an integer value.");
+    console.error("Argument to 'rotate' command is not an integer value.");
     return;
   }
 
@@ -365,7 +380,7 @@ class TurtleCommandInterpreter {
 TurtleCommandInterpreter.prototype.evalRight = function(degreesArg) {
   var degrees = parseInt(degreesArg, 10);
   if (isNaN(degrees)) {
-    console.log("Argument to 'rotate' command is not an integer value.");
+    console.error("Argument to 'rotate' command is not an integer value.");
     return;
   }
 
@@ -411,6 +426,24 @@ $(document).ready(() => {
       ctx.lineWidth = turtle.strokeWidth;
       ctx.strokeStyle = turtle.color;
 
+      ctx.stroke();
+    } else if (command instanceof PolygonCommand) {
+      let size = 25;
+      ctx.beginPath();
+      ctx.moveTo(
+        turtle.xPosition + size * Math.cos(0),
+        turtle.yPosition + size * Math.sin(0)
+      );
+
+      for (let i = 0; i <= command.sides; i += 1) {
+        ctx.lineTo(
+          turtle.xPosition + size * Math.cos(i * 2 * Math.PI / command.sides),
+          turtle.yPosition + size * Math.sin(i * 2 * Math.PI / command.sides)
+        );
+      }
+
+      ctx.strokeStyle = turtle.color;
+      ctx.lineWidth = turtle.strokeWidth;
       ctx.stroke();
     }
   }
@@ -516,8 +549,7 @@ $(document).ready(() => {
   turtleInterpreter.execute("forward 50");
   turtleInterpreter.execute("rotate 135");
   turtleInterpreter.execute("forward 50");
-  turtleInterpreter.execute("circle 15");
-  turtleInterpreter.execute("goto 150, 100");
+  turtleInterpreter.execute("polygon 8");
 
   setInterval(() => {
     renderBackground();
