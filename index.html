@@ -63,7 +63,12 @@
               var preparedCommand = processor.process(translation.transcript);
               $("#prepared-response").html(preparedCommand);
 
-              turtleInterpreter.execute(preparedCommand);
+              var errors = turtleInterpreter.execute(preparedCommand);
+              if (errors) {
+                $("#errors").html(errors);
+              } else {
+                $("#errors").html("");
+              }
             }
           }
 
@@ -80,7 +85,7 @@
   <input id="record" type="button" value="Record"/>
   <div><span><strong>Recognized </strong></span><span id="recognize-response"></span></div>
   <div><span><strong>Processed </strong></span><span id="prepared-response"></span></div>
-  <div id="errors"><ul></ul></div>
+  <div><span id="errors" style="color:red;"></span></div>
   <div><canvas id="turtle" width='800' height='600' border='1px'></canvas></div>
 </body>
 </html>

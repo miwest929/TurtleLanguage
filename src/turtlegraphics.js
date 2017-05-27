@@ -284,6 +284,10 @@ class TurtleCommandInterpreter {
     }
   }
 
+  notIntegerValueError(command, arg) {
+    return `Argument '${arg}' to '${command}' command is not an integer value.`
+  }
+
   // eval* functions must return a new TurtleCommand that
   // represents the
   evalGoto(xArg, yArg) {
@@ -291,79 +295,72 @@ class TurtleCommandInterpreter {
     let y = parseInt(yArg, 10);
 
     if (isNaN(x)) {
-      console.error("Argument 'x' to 'goto' command is not an integer value.");
-      return nil;
+      return {error: this.notIntegerValueError("goto", "x")};
     }
 
     if (isNaN(y)) {
-      console.error("Argument 'y' to 'goto' command is not an integer value.");
-      return nil;
+      return {error: this.notIntegerValueError("goto", "y")};
     }
 
-    return new GotoCommand(x, y);
+    return {command: new GotoCommand(x, y)};
   }
 
   evalHide() {
-    return new ShowTurtleCommand(false);
+    return {command: new ShowTurtleCommand(false)};
   }
 
   evalShow() {
-    return new ShowTurtleCommand(true);
+    return {command: new ShowTurtleCommand(true)};
   }
 
   evalHome() {
-    return new GoHomeCommand();
+    return {command: new GoHomeCommand()};
   }
 
   evalWidth(widthArg) {
     let width = parseInt(widthArg, 10);
     if (isNaN(width)) {
-      console.error("Argument to 'width' command is not an integer value.");
-      return nil;
+      return {error: this.notIntegerValueError("width", "width")};
     }
 
-    return new SetWidthCommand(width);
+    return {command: new SetWidthCommand(width)};
   }
 
   evalCircle(radiusArg) {
     let radius = parseInt(radiusArg, 10);
     if (isNaN(radius)) {
-      console.error("Argument to 'circle' command is not an integer value.");
-      return nil;
+      return {error: this.notIntegerValueError("circle", "radius")};
     }
 
-    return new CircleCommand(radius);
+    return {command: new CircleCommand(radius)};
   }
 
   evalForward(amountArg) {
     var pixels = parseInt(amountArg, 10);
     if (isNaN(pixels)) {
-      console.error("Argument to 'forward' command is not an integer value.");
-      return;
+      return {error: this.notIntegerValueError("forward", "step")};
     }
 
-    return new LineCommand(-pixels);
+    return {command: new LineCommand(-pixels)};
   }
 
   evalPolygon(sidesArg) {
     var sides = parseInt(sidesArg, 10);
     if (isNaN(sides)) {
-      console.error("Argument to 'polygon' command is not an integer value.");
-      return;
+      return {error: this.notIntegerValueError("polygon", "sides")};
     } else if (sides <= 2) {
-      console.error("Argument to 'polygon' command must be greater than 2.");
-      return;
+      return {error: "Argument 'sides' to 'polygon' command must be greater than 2."};
     }
 
-    return new PolygonCommand(sides);
+    return {command: new PolygonCommand(sides)};
   }
 
   evalPenDown() {
-    return new ChangePenStateCommand(true);
+    return {command: new ChangePenStateCommand(true)};
   }
 
   evalPenUp() {
-    return new ChangePenStateCommand(false);
+    return {command: new ChangePenStateCommand(false)};
   }
 
   evalPen(flagArg) {
@@ -373,65 +370,62 @@ class TurtleCommandInterpreter {
     } else if (flagArg == "down") {
       newState = true;
     } else {
-      console.error("Invalid argument '" + flagArg + "' to 'pen' command.");
-      return nil;
+      return {error: "Invalid value for argument 'state' in 'pen' command."};
     }
 
-    return new ChangePenStateCommand(newState);
+    return {command: new ChangePenStateCommand(newState)};
   }
 
   evalRotate(degreesArg) {
     let degrees = parseInt(degreesArg, 10);
     if (isNaN(degrees)) {
-      console.error("Argument to 'rotate' command is not an integer value.");
-      return;
+      return {error: this.notIntegerValueError("rotate", "degrees")};
     }
 
     let radians = degrees * Math.PI/180;;
-    return new RotateCommand(radians);
+    return {command: new RotateCommand(radians)};
   }
 
   evalLeft(degreesArg) {
     let degrees = parseInt(degreesArg, 10);
     if (isNaN(degrees)) {
-      console.error("Argument to 'left' command is not an integer value.");
+      return {error: this.notIntegerValueError("left", "degrees")};
     }
 
     let radians = degrees * Math.PI / 180;
-    return new LeftCommand(radians);
+    return {command: new LeftCommand(radians)};
   }
 
   evalRight(degreesArg) {
     let degrees = parseInt(degreesArg, 10);
     if (isNaN(degrees)) {
-      console.error("Argument to 'left' command is not an integer value.");
+      return {error: this.notIntegerValueError("right", "degrees")};
     }
 
     let radians = degrees * Math.PI / 180;
-    return new RightCommand(radians);
+    return {command: new RightCommand(radians)};
   }
 
   evalColor(colorArg) {
     let colorStyle = ColorWheel.lookup(colorArg);
 
     if (colorStyle == undefined) {
-      console.error("color '" + colorArg + "' is not recognized");
-      return;
+      return {error: `Color '${colorArg}' is not a recognized color.`};
     }
 
-    return new ColorCommand(colorStyle);
+    return {command: new ColorCommand(colorStyle)};
   }
 
   evalUndo() {
     this.commands.pop();
 
-    return null;
+    return {};
   }
 
   evalClear() {
     this.commands = [];
 
-    return null;
+    return {};
   }
 
 
@@ -447,20 +441,19 @@ class TurtleCommandInterpreter {
       index = tokens.indexOf("");
     }
 
+    let errors = [];
     while (tokens.length > 0) {
       var fnName = tokens.shift()
       var fn = this.functionEvalMap[fnName]
 
       if (fn == undefined) {
-        console.error("'" + fnName + "' is not a valid command.");
-        return;
+        return `'${fnName}' is not a valid command`;
       }
 
       var argsCount = this.fnArgCountMap[fnName];
 
       if (argsCount == undefined) {
-        console.error("Unknown argument count for function '" + fnName + "'");
-        return;
+        return "Unknown argument count for function '" + fnName + "'";
       }
 
       var args = [];
@@ -468,12 +461,19 @@ class TurtleCommandInterpreter {
         args.push( tokens.shift() );
       }
 
-      var newCommand = fn.apply(this, args);
+      //var newCommand = fn.apply(this, args);
+      let result = fn.apply(this, args);
 
-      if (newCommand != null) {
-        this.commands.push(newCommand);
+      if (result.command != null) {
+        this.commands.push(result.command);
+      }
+
+      if (result.error != null) {
+        errors.push(result.error);
       }
     }
+
+    return errors;
   }
 }
 
@@ -655,8 +655,6 @@ $(document).ready(() => {
   turtleInterpreter.execute("left 90");
   turtleInterpreter.execute("forward 50");
   turtleInterpreter.execute("left 90");
-  turtleInterpreter.execute("forward 50");
-  turtleInterpreter.execute("left 45");
   turtleInterpreter.execute("forward 50");
 
 /*
