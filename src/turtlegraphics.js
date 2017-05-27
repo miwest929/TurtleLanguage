@@ -4,9 +4,10 @@ class CommandProcessor {
       {match: ["for", "word"], replace: ["forward"]},
       {match: ["4", "word"], replace: ["forward"]},
       {match: ["four", "word"], replace: ["forward"]},
-      {match: ["go", "to"], replace: ["goto"]}
+      {match: ["go", "to"], replace: ["goto"]},
+      {match: ["polygons"], replace: ["polygon"]}
     ];
-    this.functionRules = [];
+    this.functionRules = [this.matchEnglishNumbers];
   }
 
   tokenize(command) {
@@ -27,9 +28,45 @@ class CommandProcessor {
           );
         }
       }
+
+      // Now try each of the function rules
+      for (let currFnRule of this.functionRules) {
+        let result = currFnRule(remainder);
+
+        // if something was consumed
+        if (result.consumedCount > 0) {
+          Array.prototype.splice.apply(
+            tokens,
+            [index, result.consumedCount].concat(result.replace)
+          )
+        }
+      }
     }
 
     return tokens.join(" ");
+  }
+
+  matchEnglishNumbers(tokens) {
+    let englishToDecimalMap = {
+      "one": "1",
+      "two": "2",
+      "three": "3",
+      "four": "4",
+      "five": "5",
+      "six": "6",
+      "seven": "7",
+      "eight": "8",
+      "nine": "9",
+      "ten": "10"
+    };
+
+    let asDecimal = englishToDecimalMap[tokens[0]];
+
+    if (asDecimal) {
+      return {consumedCount: 1, replace: asDecimal};
+    } else {
+      return {consumedCount: 0};
+    }
   }
 
   // Returns a boolean
@@ -155,7 +192,9 @@ class TurtleCommandInterpreter {
       width: this.evalWidth,
       clear: this.evalClear,
       "goto": this.evalGoto,
-      polygon: this.evalPolygon
+      polygon: this.evalPolygon,
+      left: this.evalLeft,
+      right: this.evalRight
     };
 
     this.fnArgCountMap = {
@@ -173,7 +212,9 @@ class TurtleCommandInterpreter {
       width: 1,
       clear: 0,
       "goto": 2,
-      polygon: 1
+      polygon: 1,
+      left: 1,
+      right: 1
     }
   }
 
@@ -300,7 +341,9 @@ class TurtleCommandInterpreter {
       beige: "rgb(245,245,220)",
       aqua: "rgb(0,255,255)",
       teal: "rgb(0,128,128)",
-      brown: "rgb(139,69,19)"
+      brown: "rgb(139,69,19)",
+      black: "rgb(0,0,0)",
+      white: "rgb(255,255,255)"
     }
 
     let colorStyle = colorMap[colorArg];
@@ -366,6 +409,14 @@ class TurtleCommandInterpreter {
     }
   }
 }
+
+//evalLeft(degreesArg) {
+
+//}
+
+//evalRight(degreesArg) {
+
+//}
 
 /*TurtleCommandInterpreter.prototype.evalLeft = function(degreesArg) {
   var degrees = parseInt(degreesArg, 10);
