@@ -140,102 +140,195 @@ class ColorWheel {
 }
 
 class TurtleCommand {
-  constructor() {
+  constructor(isUpdate, isRender) {
+    this.isUpdateCommand = isUpdate;
+    this.isRenderCommand = isRender;
   }
+
+  execute() {}
 }
 
 class GoHomeCommand extends TurtleCommand {
   constructor() {
-    super();
+    super(true, false);
+  }
+
+  execute(turtle) {
+    turtle.xPosition = centerX;
+    turtle.yPosition = centerY;
+    turtle.rotationAngle = 0;
   }
 }
 
 class ChangePenStateCommand extends TurtleCommand {
   constructor(penStateFlag) {
-    super();
+    super(true, false);
 
     this.isPendown = penStateFlag;
+  }
+
+  execute(turtle) {
+    turtle.isPendown = this.isPendown;
   }
 }
 
 class ShowTurtleCommand extends TurtleCommand {
   constructor(showTurtleFlag) {
-    super();
+    super(true, false);
 
     this.showTurtleFlag = showTurtleFlag;
+  }
+
+  execute(turtle) {
+    turtle.showTurtle = this.showTurtleFlag;
   }
 }
 
 class RotateCommand extends TurtleCommand {
   constructor(radians) {
-    super();
+    super(true, false);
 
     this.radians = radians;
+  }
+
+  execute(turtle) {
+    turtle.rotationAngle = this.radians;
   }
 }
 
 class RightCommand extends TurtleCommand {
   constructor(radians) {
-    super();
+    super(true, false);
 
     this.radians = radians;
+  }
+
+  execute(turtle) {
+    turtle.rotationAngle += this.radians;
   }
 }
 
 class LeftCommand extends TurtleCommand {
   constructor(radians) {
-    super();
+    super(true, false);
 
     this.radians = radians;
+  }
+
+  execute(turtle) {
+    turtle.rotationAngle -= this.radians;
   }
 }
 
 class GotoCommand extends TurtleCommand {
   constructor(x, y) {
-    super();
+    super(true, false);
 
     this.x = x;
     this.y = y;
+  }
+
+  execute(turtle) {
+    turtle.xPosition = this.x;
+    turtle.yPosition = this.y;
   }
 }
 
 class SetWidthCommand extends TurtleCommand {
   constructor(width) {
-    super();
+    super(true, false);
 
     this.width = width;
+  }
+
+  execute(turtle) {
+    turtle.strokeWidth = this.width;
   }
 }
 
 class LineCommand extends TurtleCommand {
   constructor(step) {
-    super();
+    super(true, true);
 
     this.step = step;
+  }
+
+  execute(turtle) {
+    turtle.xPosition += this.step * Math.cos(turtle.rotationAngle);
+    turtle.yPosition += this.step * Math.sin(turtle.rotationAngle);
+  }
+
+  render(ctx, turtle) {
+    ctx.strokeStyle = turtle.color;
+
+    ctx.beginPath();
+    ctx.moveTo(turtle.xPosition, turtle.yPosition);
+
+    ctx.lineTo(
+      turtle.xPosition + this.step * Math.cos(turtle.rotationAngle),
+      turtle.yPosition + this.step * Math.sin(turtle.rotationAngle)
+    );
+
+    ctx.lineWidth = turtle.strokeWidth;
+    ctx.stroke();
   }
 }
 
 class CircleCommand extends TurtleCommand {
   constructor(radius) {
-    super();
+    super(false, true);
 
     this.radius = radius;
+  }
+
+  render(ctx, turtle) {
+    ctx.beginPath();
+
+    ctx.arc(turtle.xPosition, turtle.yPosition, this.radius, 0, 2 * Math.PI, false);
+    ctx.lineWidth = turtle.strokeWidth;
+    ctx.strokeStyle = turtle.color;
+
+    ctx.stroke();
   }
 }
 
 class PolygonCommand extends TurtleCommand {
   constructor(sides) {
-    super();
+    super(false, true);
 
     this.sides = sides;
+  }
+
+  render(ctx, turtle) {
+    let size = 25;
+    ctx.beginPath();
+    ctx.moveTo(
+      turtle.xPosition + size * Math.cos(0),
+      turtle.yPosition + size * Math.sin(0)
+    );
+
+    for (let i = 0; i <= this.sides; i += 1) {
+      ctx.lineTo(
+        turtle.xPosition + size * Math.cos(i * 2 * Math.PI / this.sides),
+        turtle.yPosition + size * Math.sin(i * 2 * Math.PI / this.sides)
+      );
+    }
+
+    ctx.strokeStyle = turtle.color;
+    ctx.lineWidth = turtle.strokeWidth;
+    ctx.stroke();
   }
 }
 
 class ColorCommand extends TurtleCommand {
   constructor(color) {
-    super();
+    super(true, false);
 
     this.color = color;
+  }
+
+  execute(turtle) {
+    turtle.color = this.color;
   }
 }
 
@@ -491,50 +584,11 @@ $(document).ready(() => {
   };
 
   let renderCommand = (turtle, command) => {
-    if (!turtle.isPendown) {
+    if (!turtle.isPendown || !command.isRenderCommand) {
       return;
     }
 
-    if (command instanceof LineCommand) {
-      ctx.strokeStyle = turtle.color;
-
-      ctx.beginPath();
-      ctx.moveTo(turtle.xPosition, turtle.yPosition);
-
-      ctx.lineTo(
-        turtle.xPosition + command.step * Math.cos(turtle.rotationAngle),
-        turtle.yPosition + command.step * Math.sin(turtle.rotationAngle)
-      );
-
-      ctx.lineWidth = turtle.strokeWidth;
-      ctx.stroke();
-    } else if (command instanceof CircleCommand) {
-      ctx.beginPath();
-
-      ctx.arc(turtle.xPosition, turtle.yPosition, command.radius, 0, 2 * Math.PI, false);
-      ctx.lineWidth = turtle.strokeWidth;
-      ctx.strokeStyle = turtle.color;
-
-      ctx.stroke();
-    } else if (command instanceof PolygonCommand) {
-      let size = 25;
-      ctx.beginPath();
-      ctx.moveTo(
-        turtle.xPosition + size * Math.cos(0),
-        turtle.yPosition + size * Math.sin(0)
-      );
-
-      for (let i = 0; i <= command.sides; i += 1) {
-        ctx.lineTo(
-          turtle.xPosition + size * Math.cos(i * 2 * Math.PI / command.sides),
-          turtle.yPosition + size * Math.sin(i * 2 * Math.PI / command.sides)
-        );
-      }
-
-      ctx.strokeStyle = turtle.color;
-      ctx.lineWidth = turtle.strokeWidth;
-      ctx.stroke();
-    }
+    command.render(ctx, turtle);
   }
 
   let loadImage = (path) => {
@@ -565,28 +619,8 @@ $(document).ready(() => {
     }
 
     update(command) {
-      if (command instanceof LineCommand) {
-        this.xPosition += command.step * Math.cos(this.rotationAngle);
-        this.yPosition += command.step * Math.sin(this.rotationAngle);
-      } else if (command instanceof ColorCommand) {
-        this.color = command.color;
-      } else if (command instanceof RotateCommand) {
-        this.rotationAngle = command.radians;
-      } else if (command instanceof LeftCommand) {
-        this.rotationAngle -= command.radians;
-      } else if (command instanceof RightCommand) {
-        this.rotationAngle += command.radians;
-      } else if (command instanceof ChangePenStateCommand) {
-        this.isPendown = command.isPendown;
-      } else if (command instanceof GoHomeCommand) {
-        this.reset(centerX, centerY, 0);
-      } else if (command instanceof ShowTurtleCommand) {
-        this.showTurtle = command.showTurtleFlag;
-      } else if (command instanceof SetWidthCommand) {
-        this.strokeWidth = command.width;
-      } else if (command instanceof GotoCommand) {
-        this.xPosition = command.x;
-        this.yPosition = command.y;
+      if (command.isUpdateCommand) {
+        command.execute(this);
       }
     }
 
@@ -643,6 +677,7 @@ $(document).ready(() => {
   );
 
   turtleInterpreter.execute("hide");
+  turtleInterpreter.execute("color green");
   turtleInterpreter.execute("forward 50");
   turtleInterpreter.execute("right 90");
   turtleInterpreter.execute("forward 50");
@@ -656,6 +691,10 @@ $(document).ready(() => {
   turtleInterpreter.execute("forward 50");
   turtleInterpreter.execute("left 90");
   turtleInterpreter.execute("forward 50");
+  turtleInterpreter.execute("circle 50");
+  turtleInterpreter.execute("right 90");
+  turtleInterpreter.execute("forward 50");
+  turtleInterpreter.execute("circle 50");
 
 /*
   turtleInterpreter.execute("home");
