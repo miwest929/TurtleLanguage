@@ -29,7 +29,6 @@ Run:
 - `WIDTH`
 - `GOTO`
 - `POLYGON`
-- `ROTATE`
 - `LEFT`
 - `RIGHT`
 
@@ -46,3 +45,4 @@ Run:
 - http://abz.inf.ethz.ch/wp-content/uploads/unterrichtsmaterialien/primarschulen/logo_heft_en.pdf
 - https://people.eecs.berkeley.edu/~bh/pdf/v1ch10.pdf
 - https://en.wikipedia.org/wiki/L-system
+- https://pdfs.semanticscholar.org/e98c/414cc4cb7b5fd54f82f33f49d35dbb28df56.pdf
